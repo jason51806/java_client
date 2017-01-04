@@ -1,0 +1,126 @@
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.BufferedWriter;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.cert.X509Certificate;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class SendClient {
+  public static void main(String[] args) throws Exception {
+    /*
+     *  fix for
+     *    Exception in thread "main" javax.net.ssl.SSLHandshakeException:
+     *       sun.security.validator.ValidatorException:
+     *           PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException:
+     *               unable to find valid certification path to requested target
+     */
+    TrustManager[] trustAllCerts = new TrustManager[] {
+       new X509TrustManager() {
+          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return null;
+          }
+
+          public void checkClientTrusted(X509Certificate[] certs, String authType) {  }
+
+          public void checkServerTrusted(X509Certificate[] certs, String authType) {  }
+
+       }
+    };
+
+    SSLContext sc = SSLContext.getInstance("SSL");
+    sc.init(null, trustAllCerts, new java.security.SecureRandom());
+    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+    // Create all-trusting host name verifier
+    HostnameVerifier allHostsValid = new HostnameVerifier() {
+        public boolean verify(String hostname, SSLSession session) {
+          return true;
+        }
+    };
+    // Install the all-trusting host verifier
+    HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+    /*
+     * end of the fix
+     */
+    URL url = new URL("https://localhost:8001");
+
+    URLConnection con = url.openConnection();
+	//HttpsURLConnection con = (HttpsURLConnection)url.openConnection();
+	con.setDoOutput(true);
+	con.setDoInput(true);
+	con.setUseCaches(false);
+/*	System.out.println("------------1");
+	InputStream in = con.getInputStream();
+	System.out.println("------------2");
+	InputStreamReader Inreader = new InputStreamReader(in);
+	System.out.println("------------3");
+	BufferedReader bufferedReader = new BufferedReader(Inreader);
+	System.out.println("------------4");*/
+	JSONObject writeJsonObj = new JSONObject();
+	
+	//BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(con.getOutputStream()));
+	
+	//BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+	PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(con.getOutputStream()));
+	writeJsonObj.put("msg","Hello server!");
+	System.out.println(writeJsonObj.toString());
+	printWriter.println(writeJsonObj);
+	printWriter.flush();
+	/*String text = writeJsonObj.toString();
+	writer.write(text);
+	writer.flush();*/
+	
+    while (true) {
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		System.out.println("--prepare to receive message");
+		
+		String line = null;
+		
+		line = bufferedReader.readLine();
+		System.out.println("read something from server");
+		System.out.println(line);
+		JSONObject readJsonObj = new JSONObject(line);
+		
+		System.out.println(readJsonObj.toString());
+
+		if(readJsonObj.has("test"))
+		{
+			System.out.println("Send the second message to server");
+			printWriter.println(writeJsonObj);
+			printWriter.println();
+			printWriter.flush();
+		}
+		/*System.out.println("else Send the second message to server");
+		printWriter.println(writeJsonObj);
+		printWriter.println();
+		printWriter.flush();*/
+		
+		/*while ((line = in.readLine()) != null)
+		{
+			System.out.println("read something from server");
+		  System.out.println(line);
+		}*/
+
+     /* if (ch==-1) {
+        break;
+      }
+      System.out.print((char)ch);*/
+    }
+   }
+}
