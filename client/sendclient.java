@@ -21,24 +21,19 @@ import java.security.cert.X509Certificate;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+
 public class SendClient {
-  public static void main(String[] args) throws Exception {
-    /*
-     *  fix for
-     *    Exception in thread "main" javax.net.ssl.SSLHandshakeException:
-     *       sun.security.validator.ValidatorException:
-     *           PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException:
-     *               unable to find valid certification path to requested target
-     */
+    public static void main(String[] args) throws Exception {
+		
     TrustManager[] trustAllCerts = new TrustManager[] {
-       new X509TrustManager() {
-          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-            return null;
-          }
+        new X509TrustManager() {
+		    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
 
-          public void checkClientTrusted(X509Certificate[] certs, String authType) {  }
+        public void checkClientTrusted(X509Certificate[] certs, String authType) {  }
 
-          public void checkServerTrusted(X509Certificate[] certs, String authType) {  }
+        public void checkServerTrusted(X509Certificate[] certs, String authType) {  }
 
        }
     };
@@ -50,7 +45,7 @@ public class SendClient {
     // Create all-trusting host name verifier
     HostnameVerifier allHostsValid = new HostnameVerifier() {
         public boolean verify(String hostname, SSLSession session) {
-          return true;
+            return true;
         }
     };
     // Install the all-trusting host verifier
@@ -62,65 +57,43 @@ public class SendClient {
 
     URLConnection con = url.openConnection();
 	//HttpsURLConnection con = (HttpsURLConnection)url.openConnection();
-	con.setDoOutput(true);
-	con.setDoInput(true);
-	con.setUseCaches(false);
-/*	System.out.println("------------1");
-	InputStream in = con.getInputStream();
-	System.out.println("------------2");
-	InputStreamReader Inreader = new InputStreamReader(in);
-	System.out.println("------------3");
-	BufferedReader bufferedReader = new BufferedReader(Inreader);
-	System.out.println("------------4");*/
-	JSONObject writeJsonObj = new JSONObject();
+    con.setDoOutput(true);
+    con.setDoInput(true);
+    con.setUseCaches(false);
+
+    JSONObject writeJsonObj = new JSONObject();
 	
 	//BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(con.getOutputStream()));
-	
 	//BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(con.getInputStream()));
-	PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(con.getOutputStream()));
-	writeJsonObj.put("msg","Hello server!");
-	System.out.println(writeJsonObj.toString());
-	printWriter.println(writeJsonObj);
-	printWriter.flush();
-	/*String text = writeJsonObj.toString();
-	writer.write(text);
-	writer.flush();*/
 	
+    PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(con.getOutputStream()));
+    writeJsonObj.put("msg","Hello server!");
+    System.out.println(writeJsonObj.toString());
+    printWriter.println(writeJsonObj);
+    printWriter.flush();
+    /*String text = writeJsonObj.toString();
+    writer.write(text);
+    writer.flush();*/
+
     while (true) {
-		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		System.out.println("--prepare to receive message");
-		
-		String line = null;
-		
-		line = bufferedReader.readLine();
-		System.out.println("read something from server");
-		System.out.println(line);
-		JSONObject readJsonObj = new JSONObject(line);
-		
-		System.out.println(readJsonObj.toString());
+	    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        System.out.println("--prepare to receive message");
 
-		if(readJsonObj.has("test"))
-		{
-			System.out.println("Send the second message to server");
-			printWriter.println(writeJsonObj);
-			printWriter.println();
-			printWriter.flush();
-		}
-		/*System.out.println("else Send the second message to server");
-		printWriter.println(writeJsonObj);
-		printWriter.println();
-		printWriter.flush();*/
-		
-		/*while ((line = in.readLine()) != null)
-		{
-			System.out.println("read something from server");
-		  System.out.println(line);
-		}*/
+        String line = null;
 
-     /* if (ch==-1) {
-        break;
-      }
-      System.out.print((char)ch);*/
-    }
-   }
+        line = bufferedReader.readLine();
+        System.out.println("read something from server");
+        System.out.println(line);
+        JSONObject readJsonObj = new JSONObject(line);
+
+        System.out.println(readJsonObj.toString());
+
+        if (readJsonObj.has("test")) {
+            System.out.println("Send the second message to server");
+            printWriter.println(writeJsonObj);
+            printWriter.println();
+            printWriter.flush();
+       }
+	}
+	}
 }
